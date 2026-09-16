@@ -79,7 +79,7 @@ HTML_PAGE = """
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>StayCast &bull; In-Hospital Stay Prediction</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -96,100 +96,114 @@ HTML_PAGE = """
     }
     .mono { font-family: 'JetBrains Mono', monospace; }
     .glass-card {
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(226, 232, 240, 0.85);
     }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between text-slate-800 antialiased">
+<body class="min-h-screen flex flex-col justify-between text-slate-800 antialiased selection:bg-teal-100 selection:text-teal-900">
 
-  <!-- Header & Navigation Bar -->
+  <!-- Responsive Header -->
   <header class="sticky top-0 z-50 glass-card border-b border-slate-200/80">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 via-cyan-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
-          <i data-lucide="dna" class="w-5 h-5"></i>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-0 sm:h-16 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-2.5 self-start sm:self-auto">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-teal-600 via-cyan-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
+          <i data-lucide="dna" class="w-4 h-4 sm:w-5 sm:h-5"></i>
         </div>
-        <span class="text-xl font-extrabold text-slate-900 tracking-tight">StayCast</span>
+        <span class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">StayCast</span>
       </div>
 
-      <!-- Tab Buttons -->
-      <nav class="flex items-center space-x-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 text-xs font-semibold">
-        <button id="nav-btn-predict" onclick="switchMainTab('predict')" class="px-4 py-2 rounded-xl bg-white shadow-sm text-teal-700 transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="stethoscope" class="w-4 h-4"></i> Predictor</span>
+      <!-- Tab Buttons with Mobile Overflow Handling -->
+      <nav class="flex items-center space-x-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200 text-xs font-semibold w-full sm:w-auto overflow-x-auto no-scrollbar">
+        <button id="nav-btn-predict" onclick="switchMainTab('predict')" class="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white shadow-sm text-teal-700 transition whitespace-nowrap text-center">
+          <span class="flex items-center justify-center gap-1.5"><i data-lucide="stethoscope" class="w-3.5 h-3.5"></i> Predictor</span>
         </button>
-        <button id="nav-btn-analytics" onclick="switchMainTab('analytics')" class="px-4 py-2 rounded-xl text-slate-600 hover:text-teal-600 transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Visual Analytics</span>
+        <button id="nav-btn-analytics" onclick="switchMainTab('analytics')" class="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-slate-600 hover:text-teal-600 transition whitespace-nowrap text-center">
+          <span class="flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> Analytics</span>
         </button>
-        <button id="nav-btn-architecture" onclick="switchMainTab('architecture')" class="px-4 py-2 rounded-xl text-slate-600 hover:text-teal-600 transition">
-          <span class="flex items-center gap-1.5"><i data-lucide="workflow" class="w-4 h-4"></i> Model Architecture</span>
+        <button id="nav-btn-architecture" onclick="switchMainTab('architecture')" class="flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-slate-600 hover:text-teal-600 transition whitespace-nowrap text-center">
+          <span class="flex items-center justify-center gap-1.5"><i data-lucide="workflow" class="w-3.5 h-3.5"></i> Architecture</span>
         </button>
       </nav>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 w-full">
 
     <!-- TAB 1: PREDICTOR VIEW -->
     <div id="tab-predict" class="space-y-6">
-      <!-- Cohort Highlights -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="glass-card rounded-2xl p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600">
-            <i data-lucide="database" class="w-5 h-5"></i>
+      
+      <!-- Responsive Stat Highlights -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="glass-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 shrink-0">
+            <i data-lucide="database" class="w-4 h-4 sm:w-5 sm:h-5"></i>
           </div>
-          <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cohort Size</p>
-            <p class="text-base font-bold text-slate-900">100,000 <span class="text-xs font-normal text-slate-500">Pts</span></p>
-          </div>
-        </div>
-        <div class="glass-card rounded-2xl p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-            <i data-lucide="git-branch" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cutoff Boundary</p>
-            <p class="text-base font-bold text-slate-900">7.0 <span class="text-xs font-normal text-slate-500">Days</span></p>
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">Cohort Size</p>
+            <p class="text-sm sm:text-base font-bold text-slate-900 truncate">100,000 <span class="text-xs font-normal text-slate-500">Pts</span></p>
           </div>
         </div>
-        <div class="glass-card rounded-2xl p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600">
-            <i data-lucide="cpu" class="w-5 h-5"></i>
+
+        <div class="glass-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+            <i data-lucide="git-branch" class="w-4 h-4 sm:w-5 sm:h-5"></i>
           </div>
-          <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Transform</p>
-            <p class="text-base font-bold text-slate-900 mono">log1p(LOS)</p>
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">Boundary</p>
+            <p class="text-sm sm:text-base font-bold text-slate-900 truncate">7.0 <span class="text-xs font-normal text-slate-500">Days</span></p>
           </div>
         </div>
-        <div class="glass-card rounded-2xl p-4 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-            <i data-lucide="shield-check" class="w-5 h-5"></i>
+
+        <div class="glass-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 shrink-0">
+            <i data-lucide="cpu" class="w-4 h-4 sm:w-5 sm:h-5"></i>
           </div>
-          <div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Leakage Guard</p>
-            <p class="text-base font-bold text-emerald-600 flex items-center gap-1"><i data-lucide="check" class="w-4 h-4"></i> Enforced</p>
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">Transform</p>
+            <p class="text-sm sm:text-base font-bold text-slate-900 mono truncate">log1p</p>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-3.5 sm:p-4 flex items-center gap-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+            <i data-lucide="shield-check" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">Leakage Guard</p>
+            <p class="text-sm sm:text-base font-bold text-emerald-600 flex items-center gap-1 truncate"><i data-lucide="check" class="w-3.5 h-3.5 shrink-0"></i> Active</p>
           </div>
         </div>
       </div>
 
-      <!-- Inference Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <!-- Form -->
-        <div class="lg:col-span-7 glass-card rounded-3xl p-6 sm:p-8 shadow-sm">
-          <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+      <!-- Main Prediction Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        
+        <!-- Form Console -->
+        <div class="lg:col-span-7 glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
             <div>
               <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <i data-lucide="clipboard-list" class="w-5 h-5 text-teal-600"></i> Admission Parameters
+                <i data-lucide="clipboard-list" class="w-4 h-4 sm:w-5 sm:h-5 text-teal-600"></i> Admission Parameters
               </h2>
-              <p class="text-xs text-slate-500 mt-0.5">Enter patient records to trigger the two-stage model</p>
+              <p class="text-xs text-slate-500 mt-0.5">Input pre-procedure patient data</p>
             </div>
             
             <div class="flex gap-2">
-              <button type="button" onclick="loadPreset('mild')" class="text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100/80 border border-teal-200 px-3 py-1.5 rounded-xl transition">
+              <button type="button" onclick="loadPreset('mild')" class="flex-1 sm:flex-none text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100/80 border border-teal-200 px-3 py-1.5 rounded-xl transition text-center">
                 Mild Stay
               </button>
-              <button type="button" onclick="loadPreset('severe')" class="text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 px-3 py-1.5 rounded-xl transition">
+              <button type="button" onclick="loadPreset('severe')" class="flex-1 sm:flex-none text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 px-3 py-1.5 rounded-xl transition text-center">
                 Prolonged Stay
               </button>
             </div>
@@ -198,12 +212,12 @@ HTML_PAGE = """
           <form id="predictionForm" class="space-y-5">
             <div>
               <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> 1. Demographics & Facility
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> 1. Administration & History
               </p>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Gender</label>
-                  <select id="gender" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
+                  <select id="gender" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
                     <option value="" disabled selected>Select Gender</option>
                     <option value="0">Female</option>
                     <option value="1">Male</option>
@@ -211,7 +225,7 @@ HTML_PAGE = """
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Facility</label>
-                  <select id="facid" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
+                  <select id="facid" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
                     <option value="" disabled selected>Select Facility</option>
                     <option value="A">Facility A</option>
                     <option value="B">Facility B</option>
@@ -219,11 +233,11 @@ HTML_PAGE = """
                     <option value="D">Facility D</option>
                     <option value="E">Facility E</option>
                   </select>
-                  <p class="text-[10px] text-slate-400 mt-1 leading-tight">Admitting clinical center.</p>
+                  <p class="text-[10px] text-slate-400 mt-1">Admitting clinical center.</p>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Prior Readmissions</label>
-                  <select id="rcount" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
+                  <select id="rcount" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
                     <option value="" disabled selected>Select Count</option>
                     <option value="1">1 Prior</option>
                     <option value="2">2 Prior</option>
@@ -231,7 +245,7 @@ HTML_PAGE = """
                     <option value="4">4 Prior</option>
                     <option value="5">5 Prior</option>
                   </select>
-                  <p class="text-[10px] text-slate-400 mt-1 leading-tight">Historical inpatient visits.</p>
+                  <p class="text-[10px] text-slate-400 mt-1">Historical inpatient visits.</p>
                 </div>
               </div>
             </div>
@@ -243,15 +257,15 @@ HTML_PAGE = """
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Pulse <span class="text-slate-400">(bpm)</span></label>
-                  <input type="number" id="pulse" min="30" max="220" placeholder="e.g. 76" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="pulse" min="30" max="220" placeholder="e.g. 76" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Respiration <span class="text-slate-400">(rpm)</span></label>
-                  <input type="number" id="respiration" min="5" max="60" step="0.1" placeholder="e.g. 16.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="respiration" min="5" max="60" step="0.1" placeholder="e.g. 16.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">BMI</label>
-                  <input type="number" id="bmi" min="10" max="60" step="0.1" placeholder="e.g. 27.8" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="bmi" min="10" max="60" step="0.1" placeholder="e.g. 27.8" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
               </div>
             </div>
@@ -263,58 +277,58 @@ HTML_PAGE = """
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Hematocrit <span class="text-slate-400">(g/dL)</span></label>
-                  <input type="number" id="hematocrit" min="5" max="60" step="0.1" placeholder="e.g. 12.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="hematocrit" min="5" max="60" step="0.1" placeholder="e.g. 12.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Sodium <span class="text-slate-400">(mEq/L)</span></label>
-                  <input type="number" id="sodium" min="100" max="180" step="0.1" placeholder="e.g. 138.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="sodium" min="100" max="180" step="0.1" placeholder="e.g. 138.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Glucose <span class="text-slate-400">(mg/dL)</span></label>
-                  <input type="number" id="glucose" min="30" max="500" step="0.1" placeholder="e.g. 108.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="glucose" min="30" max="500" step="0.1" placeholder="e.g. 108.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-slate-600 mb-1">Blood Urea Nitrogen <span class="text-slate-400">(mg/dL)</span></label>
-                  <input type="number" id="bloodureanitro" min="1" max="150" step="0.1" placeholder="e.g. 15.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
+                  <input type="number" id="bloodureanitro" min="1" max="150" step="0.1" placeholder="e.g. 15.0" required class="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 sm:p-3 bg-white/70 focus:ring-2 focus:ring-teal-500 focus:outline-none transition" />
                 </div>
               </div>
             </div>
 
-            <div class="pt-2 flex gap-3">
-              <button type="submit" id="predictSubmitBtn" class="flex-1 bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white font-bold text-xs py-3.5 px-5 rounded-xl shadow-md shadow-teal-600/20 transition flex items-center justify-center gap-2">
+            <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
+              <button type="submit" id="predictSubmitBtn" class="w-full sm:flex-1 bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white font-bold text-xs py-3 px-5 rounded-xl shadow-md shadow-teal-600/20 transition flex items-center justify-center gap-2">
                 <span>Run Prediction</span>
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
               </button>
-              <button type="reset" onclick="handleFormReset()" class="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition">
+              <button type="reset" onclick="handleFormReset()" class="w-full sm:w-auto px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition">
                 Reset
               </button>
             </div>
           </form>
         </div>
 
-        <!-- Result Card -->
-        <div class="lg:col-span-5 glass-card rounded-3xl p-6 sm:p-8 shadow-sm">
+        <!-- Output Dashboard -->
+        <div class="lg:col-span-5 glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Inference Projection</span>
-            <span id="tierBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 transition-colors">
+            <span id="tierBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 transition-colors">
               Waiting for Input
             </span>
           </div>
 
-          <!-- Clean Projection Display -->
-          <div class="py-8 flex flex-col items-center justify-center text-center">
+          <!-- Hero Number -->
+          <div class="py-6 sm:py-8 flex flex-col items-center justify-center text-center">
             <span class="text-xs font-medium text-slate-400">Estimated Hospital Stay</span>
             <div class="flex items-baseline justify-center space-x-1.5 mt-2">
-              <span id="predDays" class="text-6xl font-extrabold text-slate-900 tracking-tight mono">--</span>
-              <span class="text-lg font-bold text-slate-500">Days</span>
+              <span id="predDays" class="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight mono">--</span>
+              <span class="text-base sm:text-lg font-bold text-slate-500">Days</span>
             </div>
-            <p id="predSubtext" class="text-xs text-slate-500 mt-3 max-w-xs text-center leading-relaxed">
+            <p id="predSubtext" class="text-xs text-slate-500 mt-2 max-w-xs text-center leading-relaxed">
               Submit patient admission data to evaluate probability of long stay.
             </p>
           </div>
 
-          <!-- Progress Bar Placement -->
-          <div class="mt-4 pt-4 border-t border-slate-100">
+          <!-- Cohort Progress Bar -->
+          <div class="mt-2 pt-4 border-t border-slate-100">
             <div class="flex justify-between text-[11px] font-bold text-slate-500 mb-2">
               <span>Cohort Position</span>
               <span id="relativePercent">0% of Max</span>
@@ -330,16 +344,16 @@ HTML_PAGE = """
             </div>
           </div>
 
-          <!-- Decomposition Cards -->
-          <div class="mt-6 grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-            <div class="bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Stage 1 Classifier</span>
-              <p id="stage1Label" class="text-xs font-bold text-slate-700">--</p>
+          <!-- Diagnostic Cards -->
+          <div class="mt-5 grid grid-cols-2 gap-2.5 sm:gap-3 pt-4 border-t border-slate-100">
+            <div class="bg-slate-50/80 p-3 rounded-xl sm:rounded-2xl border border-slate-100">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Stage 1 Classifier</span>
+              <p id="stage1Label" class="text-xs font-bold text-slate-700 truncate">--</p>
               <span class="text-[10px] text-slate-400">Cutoff: 7.0d</span>
             </div>
-            <div class="bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Stage 2 Regressor</span>
-              <p id="stage2Label" class="text-xs font-bold text-slate-700">--</p>
+            <div class="bg-slate-50/80 p-3 rounded-xl sm:rounded-2xl border border-slate-100">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Stage 2 Regressor</span>
+              <p id="stage2Label" class="text-xs font-bold text-slate-700 truncate">--</p>
               <span class="text-[10px] text-slate-400">Bound: &lt;14.0d</span>
             </div>
           </div>
@@ -348,115 +362,111 @@ HTML_PAGE = """
     </div>
 
     <!-- TAB 2: VISUAL ANALYTICS VIEW -->
-    <div id="tab-analytics" class="hidden space-y-6">
+    <div id="tab-analytics" class="hidden space-y-5 sm:space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Experimental Evaluation Charts</h3>
-          <p class="text-xs text-slate-500">Benchmark results extracted from the cross-validation runs</p>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900">Experimental Evaluation Charts</h3>
+          <p class="text-xs text-slate-500">Benchmark results extracted from cross-validation runs</p>
         </div>
-        <div class="flex gap-2 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
-          <button id="subtab-stratified" onclick="loadChart('stratified')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 text-white shadow-sm transition">Stratified MAE</button>
-          <button id="subtab-cv" onclick="loadChart('cv')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition">5-Fold CV</button>
-          <button id="subtab-dist" onclick="loadChart('dist')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition">Log Transformation</button>
+        <div class="flex gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200 overflow-x-auto no-scrollbar">
+          <button id="subtab-stratified" onclick="loadChart('stratified')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 text-white shadow-sm transition whitespace-nowrap">Stratified MAE</button>
+          <button id="subtab-cv" onclick="loadChart('cv')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition whitespace-nowrap">5-Fold CV</button>
+          <button id="subtab-dist" onclick="loadChart('dist')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition whitespace-nowrap">Transformation</button>
         </div>
       </div>
 
-      <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div class="mb-6">
-          <h4 id="chartTitle" class="text-base font-bold text-slate-800">Stratified MAE Across Stay Intervals</h4>
+      <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-sm">
+        <div class="mb-4 sm:mb-6">
+          <h4 id="chartTitle" class="text-sm sm:text-base font-bold text-slate-800">Stratified MAE Across Stay Intervals</h4>
           <p id="chartSubtitle" class="text-xs text-slate-500 mt-0.5">Compares error across duration buckets.</p>
         </div>
-        <div class="h-96 w-full relative">
+        <div class="h-72 sm:h-96 w-full relative">
           <canvas id="researchChart"></canvas>
         </div>
       </div>
     </div>
 
     <!-- TAB 3: VISUAL MODEL ARCHITECTURE VIEW -->
-    <div id="tab-architecture" class="hidden space-y-8">
+    <div id="tab-architecture" class="hidden space-y-6 sm:space-y-8">
       <div>
-        <h3 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-          <i data-lucide="git-merge" class="w-6 h-6 text-teal-600"></i> Bifurcated Model Architecture Diagram
+        <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+          <i data-lucide="git-merge" class="w-5 h-5 sm:w-6 sm:h-6 text-teal-600"></i> Bifurcated Architecture Flow
         </h3>
-        <p class="text-xs text-slate-500 mt-1">Interactive visual decomposition of data transformations and two-stage decision pathways.</p>
+        <p class="text-xs text-slate-500 mt-1">Visual decomposition of data transformations and two-stage decision pathways.</p>
       </div>
 
-      <!-- Flow Diagram Graphic -->
-      <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-sm">
+      <!-- Flow Diagram -->
+      <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-sm">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
           
-          <!-- Box 1: Ingestion -->
-          <div class="lg:col-span-3 bg-white p-5 rounded-2xl border-2 border-teal-100 shadow-sm">
-            <div class="flex items-center gap-2 mb-2 text-teal-600 font-bold text-xs uppercase tracking-wider">
-              <i data-lucide="file-input" class="w-4 h-4"></i> Input Ingestion
+          <div class="lg:col-span-3 bg-white p-4 rounded-xl border-2 border-teal-100 shadow-sm">
+            <div class="flex items-center gap-2 mb-1.5 text-teal-600 font-bold text-xs uppercase tracking-wider">
+              <i data-lucide="file-input" class="w-4 h-4"></i> Ingestion
             </div>
-            <p class="text-xs font-bold text-slate-800 mb-1">10 Clinical Features</p>
-            <p class="text-[11px] text-slate-500 leading-relaxed">Leakage removed (Dates, IDs)[cite: 1]. One-hot encodings on facilities[cite: 1], categorical numeric conversion[cite: 1].</p>
-            <div class="mt-3 py-1 px-2.5 rounded-lg bg-teal-50 text-[10px] font-mono text-teal-800 font-semibold">
-              X &in; &reals;<sup>100,000 &times; 13</sup>
+            <p class="text-xs font-bold text-slate-800 mb-0.5">10 Clinical Indicators</p>
+            <p class="text-[11px] text-slate-500 leading-relaxed">Leakage removed (Dates, IDs)[cite: 1]. Facility one-hot encoding[cite: 1].</p>
+            <div class="mt-2.5 py-1 px-2.5 rounded-lg bg-teal-50 text-[10px] font-mono text-teal-800 font-semibold">
+              X &in; &reals;<sup>100k &times; 13</sup>
             </div>
           </div>
 
-          <div class="hidden lg:flex lg:col-span-1 justify-center text-teal-500">
-            <i data-lucide="arrow-right" class="w-6 h-6"></i>
+          <div class="flex justify-center text-teal-500 lg:col-span-1 py-1 lg:py-0">
+            <i data-lucide="arrow-down" class="w-5 h-5 lg:hidden"></i>
+            <i data-lucide="arrow-right" class="w-6 h-6 hidden lg:block"></i>
           </div>
 
-          <!-- Box 2: Stage 1 Gate -->
-          <div class="lg:col-span-4 bg-gradient-to-br from-teal-50/70 to-cyan-50/70 p-5 rounded-2xl border-2 border-teal-200 shadow-sm">
-            <div class="flex items-center justify-between mb-2">
+          <div class="lg:col-span-4 bg-gradient-to-br from-teal-50/70 to-cyan-50/70 p-4 rounded-xl border-2 border-teal-200 shadow-sm">
+            <div class="flex items-center justify-between mb-1.5">
               <span class="flex items-center gap-1.5 text-teal-700 font-bold text-xs uppercase tracking-wider">
                 <i data-lucide="shield-alert" class="w-4 h-4"></i> Stage 1 Classifier
               </span>
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-600 text-white">Cutoff 7.0d</span>
             </div>
-            <p class="text-xs font-bold text-slate-800 mb-1">Random Forest Classifier</p>
-            <p class="text-[11px] text-slate-600 leading-relaxed">Tuned to maximize short-stay sensitivity (&ge;90%)[cite: 1]. Evaluates out-of-fold cross-validation probabilities[cite: 1].</p>
-            <div class="mt-3 flex gap-2">
-              <span class="text-[10px] py-1 px-2 rounded-lg bg-white border border-teal-200 text-slate-700 font-medium">80 Trees</span>
-              <span class="text-[10px] py-1 px-2 rounded-lg bg-white border border-teal-200 text-slate-700 font-medium">Balanced Weights</span>
+            <p class="text-xs font-bold text-slate-800 mb-0.5">Random Forest Classifier</p>
+            <p class="text-[11px] text-slate-600 leading-relaxed">Maximizes short-stay sensitivity (&ge;90%) using out-of-fold cross-validation[cite: 1].</p>
+            <div class="mt-2.5 flex flex-wrap gap-1.5">
+              <span class="text-[10px] py-0.5 px-2 rounded-lg bg-white border border-teal-200 text-slate-700 font-medium">80 Trees</span>
+              <span class="text-[10px] py-0.5 px-2 rounded-lg bg-white border border-teal-200 text-slate-700 font-medium">Balanced Weights</span>
             </div>
           </div>
 
-          <div class="hidden lg:flex lg:col-span-1 justify-center text-cyan-500">
-            <i data-lucide="split" class="w-6 h-6"></i>
+          <div class="flex justify-center text-cyan-500 lg:col-span-1 py-1 lg:py-0">
+            <i data-lucide="arrow-down" class="w-5 h-5 lg:hidden"></i>
+            <i data-lucide="split" class="w-6 h-6 hidden lg:block"></i>
           </div>
 
-          <!-- Box 3: Forked Branches -->
           <div class="lg:col-span-3 space-y-3">
-            <!-- Branch Short -->
-            <div class="bg-white p-4 rounded-xl border-2 border-teal-300 shadow-sm">
+            <div class="bg-white p-3.5 rounded-xl border-2 border-teal-300 shadow-sm">
               <div class="flex items-center justify-between text-teal-700 text-xs font-bold mb-1">
                 <span>Predicted &lt; 7 Days</span>
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i>
               </div>
-              <p class="text-[11px] text-slate-600 leading-snug">Stage 2 RF Regressor on log(LOS) with exponential inversion[cite: 1].</p>
-              <div class="mt-2 text-[10px] font-mono text-teal-600 bg-teal-50 px-2 py-0.5 rounded">expm1(log_pred)</div>
+              <p class="text-[11px] text-slate-600 leading-snug">Stage 2 Regressor on log(LOS)[cite: 1].</p>
+              <div class="mt-1.5 text-[10px] font-mono text-teal-600 bg-teal-50 px-2 py-0.5 rounded">expm1(log_pred)</div>
             </div>
 
-            <!-- Branch Long -->
-            <div class="bg-white p-4 rounded-xl border-2 border-amber-300 shadow-sm">
+            <div class="bg-white p-3.5 rounded-xl border-2 border-amber-300 shadow-sm">
               <div class="flex items-center justify-between text-amber-700 text-xs font-bold mb-1">
                 <span>Predicted &ge; 7 Days</span>
                 <i data-lucide="lock" class="w-3.5 h-3.5"></i>
               </div>
-              <p class="text-[11px] text-slate-600 leading-snug">Honest threshold boundary assignment without speculative bias[cite: 1].</p>
-              <div class="mt-2 text-[10px] font-mono text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Bounded at 7.0d</div>
+              <p class="text-[11px] text-slate-600 leading-snug">Bounded threshold assignment[cite: 1].</p>
+              <div class="mt-1.5 text-[10px] font-mono text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Bounded at 7.0d</div>
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- Feature Details & Technical Formulations -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Predictor Significance & Metric Details -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
         
-        <!-- Parameter Details Breakdown -->
-        <div class="lg:col-span-5 glass-card p-6 rounded-3xl shadow-sm space-y-4">
+        <div class="lg:col-span-5 glass-card p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-4">
           <h4 class="text-sm font-bold text-slate-800 flex items-center gap-2">
             <i data-lucide="info" class="w-4 h-4 text-teal-600"></i> Predictor Significance
           </h4>
 
-          <div class="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200">
+          <div class="p-3 rounded-xl bg-slate-50/90 border border-slate-200">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-bold text-slate-800">Hospital Facility</span>
               <span class="text-[10px] font-mono px-2 py-0.5 bg-teal-100 text-teal-800 rounded font-semibold">A, B, C, D, E</span>
@@ -466,60 +476,59 @@ HTML_PAGE = """
             </p>
           </div>
 
-          <div class="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200">
+          <div class="p-3 rounded-xl bg-slate-50/90 border border-slate-200">
             <div class="flex items-center justify-between mb-1">
               <span class="text-xs font-bold text-slate-800">Prior Readmissions</span>
               <span class="text-[10px] font-mono px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded font-semibold">1, 2, 3, 4, 5</span>
             </div>
             <p class="text-[11px] text-slate-600 leading-relaxed">
-              Quantifies historical hospitalization frequency per individual encounter. Reflects chronic systemic disease recurrence and clinical frailty, serving as a primary indicator of extended post-admission stay durations.
+              Quantifies historical hospitalization frequency. Serves as an indicator of chronic systemic disease recurrence and clinical frailty.
             </p>
           </div>
         </div>
 
-        <!-- Metric Cards -->
-        <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="glass-card p-5 rounded-2xl flex flex-col justify-between">
+        <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          <div class="glass-card p-4 rounded-xl flex flex-col justify-between">
             <div>
-              <span class="w-8 h-8 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center text-xs font-bold mb-3">
-                <i data-lucide="target" class="w-4 h-4"></i>
+              <span class="w-7 h-7 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center text-xs font-bold mb-2.5">
+                <i data-lucide="target" class="w-3.5 h-3.5"></i>
               </span>
               <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Hinge Loss</h5>
               <p class="text-xs text-slate-500 leading-relaxed">
-                Customized truncated loss assigning zero loss penalty when both true and predicted stays exceed 7 days[cite: 1].
+                Zero penalty when both true and predicted stays exceed 7 days[cite: 1].
               </p>
             </div>
-            <div class="mt-3 pt-3 border-t border-slate-100 text-[11px] text-teal-700 font-mono font-bold">
-              Loss = 0 if both &ge; 7d
+            <div class="mt-3 pt-2.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-teal-700 font-mono font-bold">
+              Loss = 0 if &ge; 7d
             </div>
           </div>
 
-          <div class="glass-card p-5 rounded-2xl flex flex-col justify-between">
+          <div class="glass-card p-4 rounded-xl flex flex-col justify-between">
             <div>
-              <span class="w-8 h-8 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center text-xs font-bold mb-3">
-                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              <span class="w-7 h-7 rounded-lg bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center text-xs font-bold mb-2.5">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
               </span>
               <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Calibration</h5>
               <p class="text-xs text-slate-500 leading-relaxed">
-                Evaluated through linear regression slope fitted between actual stay durations and pipeline predictions[cite: 1].
+                Evaluated by regressing true stays against model predictions[cite: 1].
               </p>
             </div>
-            <div class="mt-3 pt-3 border-t border-slate-100 text-[11px] text-cyan-700 font-mono font-bold">
-              Ideal Slope = 1.0
+            <div class="mt-3 pt-2.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-cyan-700 font-mono font-bold">
+              Target Slope = 1.0
             </div>
           </div>
 
-          <div class="glass-card p-5 rounded-2xl flex flex-col justify-between">
+          <div class="glass-card p-4 rounded-xl flex flex-col justify-between">
             <div>
-              <span class="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-xs font-bold mb-3">
-                <i data-lucide="activity" class="w-4 h-4"></i>
+              <span class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-xs font-bold mb-2.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
               </span>
               <h5 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1">Sensitivity</h5>
               <p class="text-xs text-slate-500 leading-relaxed">
-                Tuned sensitivity threshold ensuring over 90% of actual short stays are preserved for continuous regression[cite: 1].
+                Tuned to capture over 90% of actual short-stay patients[cite: 1].
               </p>
             </div>
-            <div class="mt-3 pt-3 border-t border-slate-100 text-[11px] text-indigo-700 font-mono font-bold">
+            <div class="mt-3 pt-2.5 border-t border-slate-100 text-[10px] sm:text-[11px] text-indigo-700 font-mono font-bold">
               Sensitivity &gt; 90%
             </div>
           </div>
@@ -530,8 +539,9 @@ HTML_PAGE = """
 
   </main>
 
+  <!-- Responsive Footer -->
   <footer class="glass-card border-t border-slate-200/80 py-4 mt-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500 text-center sm:text-left">
       <p>&copy; 2026 Academic B.Tech ML Demonstration &bull; Xu et al. (2022)</p>
       <span class="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-medium">
         Academic estimation tool. Not clinical advice.
@@ -547,12 +557,12 @@ HTML_PAGE = """
       tabs.forEach(t => {
         document.getElementById('tab-' + t).classList.add('hidden');
         const btn = document.getElementById('nav-btn-' + t);
-        btn.className = "px-4 py-2 rounded-xl text-slate-600 hover:text-teal-600 transition";
+        btn.className = "flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-slate-600 hover:text-teal-600 transition whitespace-nowrap text-center";
       });
 
       document.getElementById('tab-' + tabId).classList.remove('hidden');
       const activeBtn = document.getElementById('nav-btn-' + tabId);
-      activeBtn.className = "px-4 py-2 rounded-xl bg-white shadow-sm text-teal-700 transition";
+      activeBtn.className = "flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-white shadow-sm text-teal-700 transition whitespace-nowrap text-center";
 
       if (tabId === 'analytics' && !currentChart) {
         loadChart('stratified');
@@ -565,55 +575,55 @@ HTML_PAGE = """
     const chartConfigs = {
       stratified: {
         title: "Stratified MAE Across Stay Intervals",
-        subtitle: "Two-stage pipeline significantly reduces error on short-stay cohorts (<7 days).",
+        subtitle: "Two-stage pipeline reduces error on short-stay cohorts (<7 days).",
         config: {
           type: 'bar',
           data: {
-            labels: ['0-2 days', '2-4 days', '4-7 days', '7+ days (Long)'],
+            labels: ['0-2d', '2-4d', '4-7d', '7d+ (Long)'],
             datasets: [
-              { label: 'LASSO (One-Stage)', data: [1.32, 1.48, 2.15, 4.82], backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 6 },
-              { label: 'Random Forest, log (One-Stage)', data: [1.18, 1.34, 1.95, 4.60], backgroundColor: 'rgba(56, 189, 248, 0.8)', borderRadius: 6 },
-              { label: 'Two-Stage Model (Xu et al.)', data: [0.98, 1.15, 1.72, 3.45], backgroundColor: 'rgba(13, 148, 136, 0.9)', borderRadius: 6 }
+              { label: 'LASSO', data: [1.32, 1.48, 2.15, 4.82], backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 4 },
+              { label: 'RF (log)', data: [1.18, 1.34, 1.95, 4.60], backgroundColor: 'rgba(56, 189, 248, 0.8)', borderRadius: 4 },
+              { label: 'Two-Stage', data: [0.98, 1.15, 1.72, 3.45], backgroundColor: 'rgba(13, 148, 136, 0.9)', borderRadius: 4 }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } },
-            scales: { y: { beginAtZero: true, title: { display: true, text: 'Mean Absolute Error (Days)' } } }
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+            scales: { y: { beginAtZero: true, title: { display: true, text: 'MAE (Days)', font: { size: 10 } } } }
           }
         }
       },
       cv: {
         title: "Algorithm 5-Fold Cross-Validation Benchmark",
-        subtitle: "Random Forest achieves superior or equivalent error metrics against LASSO.",
+        subtitle: "Random Forest achieves lower error metrics against LASSO.",
         config: {
           type: 'bar',
           data: {
-            labels: ['CV-MSE (days²)', 'CV-MAE (days)', 'CV-MRE (ratio)'],
+            labels: ['MSE (d²)', 'MAE (d)', 'MRE (ratio)'],
             datasets: [
-              { label: 'LASSO (alpha=0.01)', data: [5.24, 1.68, 0.42], backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 6 },
-              { label: 'Random Forest (Selected)', data: [4.41, 1.42, 0.34], backgroundColor: 'rgba(13, 148, 136, 0.9)', borderRadius: 6 }
+              { label: 'LASSO', data: [5.24, 1.68, 0.42], backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 4 },
+              { label: 'Random Forest', data: [4.41, 1.42, 0.34], backgroundColor: 'rgba(13, 148, 136, 0.9)', borderRadius: 4 }
             ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } },
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
             scales: { y: { beginAtZero: true } }
           }
         }
       },
       dist: {
-        title: "Target Distribution Skewness & Log Normalization",
-        subtitle: "Raw duration long-tail skewness compared to stabilized log1p(LOS) distribution.",
+        title: "Target Distribution Skewness & Normalization",
+        subtitle: "Raw duration long-tail skewness vs. stabilized log1p(LOS).",
         config: {
           type: 'line',
           data: {
-            labels: ['1d', '2d', '3d', '4d', '5d', '6d', '7d (Cutoff)', '9d', '11d', '14d (Reg Bound)', '17d (Max)'],
+            labels: ['1d', '2d', '3d', '4d', '5d', '6d', '7d', '9d', '11d', '14d', '17d'],
             datasets: [
               {
-                label: 'Raw LOS Distribution (Frequency %)',
+                label: 'Raw LOS (%)',
                 data: [32.5, 24.1, 15.6, 9.4, 6.2, 4.3, 3.1, 2.1, 1.4, 0.9, 0.4],
                 borderColor: '#f97316',
                 backgroundColor: 'rgba(249, 115, 22, 0.1)',
@@ -622,10 +632,10 @@ HTML_PAGE = """
                 yAxisID: 'y'
               },
               {
-                label: 'log1p(LOS) Scaled Target',
+                label: 'log1p(LOS)',
                 data: [0.69, 1.10, 1.39, 1.61, 1.79, 1.95, 2.08, 2.30, 2.48, 2.71, 2.89],
                 borderColor: '#0d9488',
-                borderDash: [5, 5],
+                borderDash: [4, 4],
                 tension: 0.4,
                 yAxisID: 'y1'
               }
@@ -634,10 +644,10 @@ HTML_PAGE = """
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } },
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
             scales: {
-              y: { type: 'linear', position: 'left', title: { display: true, text: 'Cohort Frequency (%)' } },
-              y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'log1p Scale' } }
+              y: { type: 'linear', position: 'left', title: { display: true, text: 'Patients (%)', font: { size: 10 } } },
+              y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'log scale', font: { size: 10 } } }
             }
           }
         }
@@ -652,9 +662,9 @@ HTML_PAGE = """
       currentChart = new Chart(ctx, chartMeta.config);
 
       ['stratified', 'cv', 'dist'].forEach(k => {
-        document.getElementById('subtab-' + k).className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition";
+        document.getElementById('subtab-' + k).className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition whitespace-nowrap";
       });
-      document.getElementById('subtab-' + key).className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 text-white shadow-sm transition";
+      document.getElementById('subtab-' + key).className = "px-3 py-1.5 text-xs font-bold rounded-lg bg-teal-600 text-white shadow-sm transition whitespace-nowrap";
     }
 
     function loadPreset(type) {
@@ -687,13 +697,13 @@ HTML_PAGE = """
     function handleFormReset() {
       predDays.textContent = "--";
       tierBadge.textContent = "Waiting for Input";
-      tierBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 transition-colors";
+      tierBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200 transition-colors";
       predSubtext.textContent = "Submit patient admission data to evaluate probability of long stay.";
       losProgressBar.style.width = "0%";
       losProgressBar.className = "h-full bg-teal-500 rounded-full transition-all duration-500";
       relativePercent.textContent = "0% of Max";
       stage1Label.textContent = "--";
-      stage1Label.className = "text-xs font-bold text-slate-700";
+      stage1Label.className = "text-xs font-bold text-slate-700 truncate";
       stage2Label.textContent = "--";
     }
 
@@ -738,20 +748,20 @@ HTML_PAGE = """
         relativePercent.textContent = percentOfMax + "% of Max";
 
         if (data.is_long_stay) {
-          tierBadge.textContent = "Prolonged Stay (≥ 7 Days)";
-          tierBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
+          tierBadge.textContent = "Prolonged (≥ 7d)";
+          tierBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200";
           losProgressBar.className = "h-full bg-amber-500 rounded-full transition-all duration-500";
           predSubtext.textContent = "Patient triaged to prolonged stay tier. Bounded at 7.0-day threshold per Xu et al. (2022).";
           stage1Label.textContent = "Long Stay (≥ 7d)";
-          stage1Label.className = "text-xs font-bold text-amber-700";
+          stage1Label.className = "text-xs font-bold text-amber-700 truncate";
           stage2Label.textContent = "Cutoff Bounded (7.0d)";
         } else {
-          tierBadge.textContent = "Short Stay (< 7 Days)";
-          tierBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200";
+          tierBadge.textContent = "Short Stay (< 7d)";
+          tierBadge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200";
           losProgressBar.className = "h-full bg-teal-500 rounded-full transition-all duration-500";
           predSubtext.textContent = "Patient triaged to short stay. Estimated with Stage 2 log-regressor via expm1(log_pred).";
           stage1Label.textContent = "Short Stay (< 7d)";
-          stage1Label.className = "text-xs font-bold text-teal-700";
+          stage1Label.className = "text-xs font-bold text-teal-700 truncate";
           stage2Label.textContent = "log1p Regressed";
         }
       } catch (err) {
